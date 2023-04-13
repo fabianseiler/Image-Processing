@@ -7,17 +7,17 @@ Energie_1 = 1.4509;
 Energie_2 = 1.6694;
 Energie_3 = 1.6678;
 Energie_4 = 1.8697;
-Energie_FA = 9.87;
-Energie_Extra = 1.33;
+Energie_FA = 3.8435;
+Energie_Extra = 0.805;
 
-NMED1 = [0.00098,0.0044,0.0127,0.0313];
+NMED1 = [0.00098,0.0044,0.0127,0.03];
 NMED2 = [0.0039,0.0083,0.0155,0.0292];
 NMED3 = [0.0039,0.0083,0.0155,0.0292];
 NMED4 = [0.0039,0.0107,0.0237,0.0489];
 
 for i = (1:4)
-    Energie = Energie_4*i + 1.33 + 9.87*(8-i); 
-    FOM(i) = Steps(i)*Energie/(1-NMED4(i));
+    Energie = Energie_4*i + Energie_Extra + Energie_FA*(8-i);
+    FOM(i) = Steps(i)*Energie/(1-NMED4(i))
 end
 
 %% Quality Metrics for 8-Bit
