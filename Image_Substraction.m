@@ -1,6 +1,3 @@
-clc;
-clear all;
-
 %% Image Substraction
 Img1 = imread('images\motion01.512.tiff');
 Img1 = uint8(Img1)/2;
@@ -15,6 +12,8 @@ ShowAllAlgos(Img1,Img2)
 
 %% functions
 function ShowAllAlgos(Img1,Img2)
+% Shows all the Different Image Addition Results with all Algorithms with
+% an Approximation Degree of 4/8
     Ref = imsubtract(Img1,Img2);
     subplot(2,4,1);
     imshow(Img1,[]);
@@ -44,6 +43,7 @@ function ShowAllAlgos(Img1,Img2)
 end
 
 function ShowOneAlgo(Img1,Img2,fun)
+% Shows One Algorithms with Different Approximation Degrees
     Ref = imsubtract(Img1,Img2);
     subplot(2,4,1);
     imshow(Img1,[]);
@@ -77,6 +77,8 @@ function ShowOneAlgo(Img1,Img2,fun)
 end
 
 function [PSNR, MSSIM] = calculateMetrics(Img1,Img2,fun)
+% Calculates PSNR and MSSIM for different Approximation Degrees for one
+% Algorithm
     Ref = imsubtract(Img1,Img2);
     A = uint8(ImgSubstraction(Img1,Img2,1,8,[512 512],fun));
     B = uint8(ImgSubstraction(Img1,Img2,2,8,[512 512],fun));
@@ -88,12 +90,13 @@ function [PSNR, MSSIM] = calculateMetrics(Img1,Img2,fun)
 end
 
 function Out = int2twoscomp(Value,n) 
-% Returns -Value in 2s Complement Binary, with n Bits
+% Returns Value in 2s Complement Binary, with n Bits in Vector Format
     BitString =  dec2bin(mod((Value),2^n),n);
     Out = uint8(flip(transpose(BitString-'0')));
 end
 
 function Output = ImgSubstraction(Img1,Img2,k,n,size, fun)
+% Uses ApprSubstraction for every Pixel in the two Grayscale Images
     Output = zeros(size(1),size(2));
     for i = (1:size(1))
         for j = (1:size(2))
@@ -122,6 +125,7 @@ function Out = ApprSubstraction(Int1,Int2,k,n, fun)
         end 
     end
     Out = bit2int(Sum,n,false);
+    % Checks if Output would be negative and sets it to 0 if it is
     if (Out > Int1)
         Out = 0;
     end

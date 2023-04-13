@@ -1,14 +1,15 @@
 %% Grayscale Conversion
-%MSSIM and PSNR has errors
 rgb_img = uint8(imread("peppers.png"));
 
 
 %ShowAllAlgos(rgb_img,3)
-ShowOneAlgo(rgb_img,@SSIAFA4)
+%ShowOneAlgo(rgb_img,@SSIAFA4)
 %[PSNR, MSSIM] = calculateMetrics(rgb_img,@SSIAFA3)
 
 %% functions
 function [PSNR, MSSIM] = calculateMetrics(rgbImg,fun)
+% Calculates PSNR and MSSIM for different Approximation Degrees for one
+% Algorithm
     Ref = uint8(GrayscaleConversion(rgbImg,0,8,fun));
     A = uint8(GrayscaleConversion(rgbImg,1,8,fun));
     B = uint8(GrayscaleConversion(rgbImg,2,8,fun));
@@ -20,6 +21,7 @@ function [PSNR, MSSIM] = calculateMetrics(rgbImg,fun)
 end
 
 function ShowOneAlgo(rgbImg,fun)
+% Shows One Algorithms with Different Approximation Degrees
     subplot(3,3,1)
     imshow(rgbImg,[])
     title("(a)")
@@ -50,6 +52,8 @@ function ShowOneAlgo(rgbImg,fun)
 end
 
 function ShowAllAlgos(rgbImg,k)
+% Shows all the Different Image Addition Results with all Algorithms with
+% an Approximation Degree of k/8 
     subplot(2,3,1)
     imshow(rgbImg,[])
     title("(a)")
@@ -76,6 +80,8 @@ function ShowAllAlgos(rgbImg,k)
 end
 
 function Output = GrayscaleConversion(rgbImg,k,n,fun)
+% Converts an RGB Image to a Grayscale Image with an RCA that has k
+% Approximated FA and (n-k) Exakt FA
     RedValues = uint8(rgbImg(:,:,1))/3;
     GreenValues = uint8(rgbImg(:,:,2))/3;
     BlueValues = uint8(rgbImg(:,:,3))/3;
@@ -85,6 +91,7 @@ function Output = GrayscaleConversion(rgbImg,k,n,fun)
 end
 
 function Output = ImgAddition(Img1,Img2,k,n,size,fun)
+% Uses ApprAddition for every Pixel for two different Image Matricies
     Output = zeros(size(1),size(2));
     for i = (1:size(1))
         for j = (1:size(2))
@@ -113,6 +120,8 @@ function Out = ApprAddition(Int1, Int2, k, n, fun)
         end 
     end
     Out = bit2int(Sum,n,false);
+    % Checks the Edge Case where the Rounded Values Reach over 2^n-1 and
+    % sets the value back to 2^n-1
     if Out > 2^n-1
         Out = 2^n-1;
     end

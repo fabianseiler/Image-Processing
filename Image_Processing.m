@@ -1,5 +1,7 @@
-clc;
-clear all;
+%% Description
+
+% Old file that isnt used anymore
+% Includes the first trys of Image Processing
 
 
 %% Image Addition

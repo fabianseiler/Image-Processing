@@ -1,8 +1,8 @@
-
 %% FOM Calculation 
-%Steps = [77,71,65,59];
-Steps = [78, 73, 68, 63];
+%Steps = [77,71,65,59];         %Steps for Algo1
+Steps = [78, 73, 68, 63];       %Steps for Algo2,3,4
 
+%Calculated Energies
 Energie_1 = 1.4509;
 Energie_2 = 1.6694;
 Energie_3 = 1.6678;
@@ -10,6 +10,7 @@ Energie_4 = 1.8697;
 Energie_FA = 3.8435;
 Energie_Extra = 0.805;
 
+%Calculated NMEDs
 NMED1 = [0.00098,0.0044,0.0127,0.03];
 NMED2 = [0.0039,0.0083,0.0155,0.0292];
 NMED3 = [0.0039,0.0083,0.0155,0.0292];
@@ -17,7 +18,7 @@ NMED4 = [0.0039,0.0107,0.0237,0.0489];
 
 for i = (1:4)
     Energie = Energie_4*i + Energie_Extra + Energie_FA*(8-i);
-    FOM(i) = Steps(i)*Energie/(1-NMED4(i))
+    FOM(i) = Steps(i)*Energie/(1-NMED4(i));
 end
 
 %% Quality Metrics for 8-Bit
@@ -32,6 +33,9 @@ end
 
 %% functions
 function [MED, NMED, MRED] = MED_8Bit(k,n,fun)
+% Calculates Error Metrics for an 8Bit RCA with k ApprFa and (n-k) Exakt FA
+% with the function fun for the Logic Outputs of the Approximated FA
+% Error Metrics are Calculated as in the Literature
     ED_Sum = 0;
     for a = (0:1:2^n-1)
         for b = (0:1:2^n-1)
@@ -51,7 +55,9 @@ function [MED, NMED, MRED] = MED_8Bit(k,n,fun)
 end
 
 function [MED, NMED, MRED] = MED_nBit(k,n,fun)
-% Hat einen Error bei der Berechnung
+% Creates an random 1000x1000 Input Array and Calulates the Error Metrics
+% for n Bits. 
+% Uses the Logic Function of ApprFA as fun
     InputValues1 = randi(2^n-1,[1000,1]);
     InputValues2 = randi(2^n-1,[1000,1]);
     ED_Sum = 0;
@@ -69,6 +75,28 @@ function [MED, NMED, MRED] = MED_nBit(k,n,fun)
     MED = ED_Sum/(1000^2-1);
     NMED = MED/(2^n-1);
     MRED = RED/(1000^2-1);
+end
+
+function Out = ApprAddition(Int1, Int2, k, n, fun)
+    % Calculates an n-Bit Addition with k Approximated FA and (n-k) FA
+    % k... Approximate Bits, n... Size
+    Ain = int2bit(Int1,n,false);
+    Bin = int2bit(Int2,n,false);
+    Cin = 0;
+    Sum = zeros(n,1);
+    if k>0
+        for i = (1:k)
+            [Cout, Sum(i)] =  fun(Ain(i),Bin(i),Cin);
+            Cin = Cout;
+        end
+    end
+    if k<8
+        for j = (k+1:n)
+            Sum(j) = xor(Ain(j),xor(Bin(j),Cin));
+            Cin = (Ain(j) & Bin(j)) | (Cin & (Ain(j) | Bin(j)));
+        end 
+    end
+    Out = uint8(bit2int(Sum,n,false));
 end
 
 function [Cout, Sum] = SSIAFA1(Ain,Bin,Cin)
@@ -93,6 +121,9 @@ end
 
 function [Cout, Sum] = AppFA(Ain,Bin,Cin)
     % Approximate Full Adder Calculation for 1 Bit with Algorithm
+    % Reference ApprFA Algorithms
+
+    
     %-------SIAFA1------------
     %Sum = ~Bin | (~Ain & ~Cin);
     %Cout = ~Sum;

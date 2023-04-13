@@ -9,6 +9,8 @@ Img2 = imread('cameraman.tif');
 %% functions
 
 function [PSNR, MSSIM] = calculateMetrics(Img1,Img2,fun)
+% Calculates PSNR and MSSIM for different Approximation Degrees for one
+% Algorithm
     Ref = imadd(Img1/2,Img2/2);
     A = uint8(ImgAddition(uint8(Img1)/2,uint8(Img2)/2,1,8,[256 256],fun));
     B = uint8(ImgAddition(uint8(Img1)/2,uint8(Img2)/2,2,8,[256 256],fun));
@@ -20,6 +22,7 @@ function [PSNR, MSSIM] = calculateMetrics(Img1,Img2,fun)
 end
 
 function ShowOneAlgo(Img1,Img2,fun)
+% Shows One Algorithms with Different Approximation Degrees
     Ref = imadd(Img1/2,Img2/2);
     subplot(2,4,1);
     imshow(Img1,[]);
@@ -53,6 +56,8 @@ function ShowOneAlgo(Img1,Img2,fun)
 end
 
 function ShowAllAlgos(Img1,Img2)
+% Shows all the Different Image Addition Results with all Algorithms with
+% an Approximation Degree of 4/8
     Ref = imadd(Img1/2,Img2/2);
     subplot(2,4,1);
     imshow(Img1,[]);
@@ -82,8 +87,8 @@ function ShowAllAlgos(Img1,Img2)
 end
 
 function void = RCA_ImageAddition()
-%Image Addition with Hardcoded RCA
-%Only used a
+% Image Addition with Hardcoded RCA
+% Test purposes Only
 PSNR = zeros(6,1);
 SSIM = zeros(6,1);
 Img1 = imread('rice.png');
@@ -97,13 +102,14 @@ for i = (1:256)
 end
 imshow(A,[]);
 title(['Appr/Exact: ', num2str(2),'/',num2str(8),]);
-[MSSIM, SSIMmap] = ssim(A,Ref);
+[MSSIM, ~] = ssim(A,Ref);
 xlabel(['PSNR: ', num2str(psnr(A,Ref)), ', MSSIM: ' , num2str(MSSIM)])
 figure
 imshow(Ref,[])
 end
 
 function Output = ImgAddition(Img1,Img2,k,n,size ,fun)
+% Uses ApprAddition for every Pixel in the two Grayscale Images
     Output = zeros(size(1),size(2));
     for i = (1:size(1))
         for j = (1:size(2))
@@ -135,6 +141,8 @@ function Out = ApprAddition(Int1, Int2, k, n, fun)
 end
 
 function Out= RCA(Int1, Int2, fun)
+% Testing function for RCA with stiff values
+% Test purpose only
     Ain = int2bit(Int1,8,false);
     Bin = int2bit(Int2,8,false);
     Cin1 = 0;
