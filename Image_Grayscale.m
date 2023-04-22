@@ -2,20 +2,67 @@
 rgb_img = uint8(imread("peppers.png"));
 
 
-%ShowAllAlgos(rgb_img,3)
-%ShowOneAlgo(rgb_img,@SSIAFA4)
+%ShowAllAlgos(rgb_img,5)
+%ShowOneAlgo(rgb_img,@SSIAFA3)
 %[PSNR, MSSIM] = calculateMetrics(rgb_img,@SSIAFA3)
 
+Ref = uint8(GrayscaleConversion2(rgb_img,5,8,@SSIAFA1));
+A = uint8(GrayscaleConversion2(rgb_img,5,8,@SSIAFA1));
+psnr(A,Ref)
+
 %% functions
+function Output = ImgAddition2(Img1,Img2,k,n,size,fun)
+% Uses ApprAddition for every Pixel for two different Image Matricies
+    Output = zeros(size(1),size(2));
+    for i = (1:size(1))
+        for j = (1:size(2))
+            Output(i,j) = ApprAddition2(Img1(i,j),Img2(i,j),k,n, fun);
+        end
+    end
+end
+
+function Out = ApprAddition2(Int1, Int2, k, n, fun)
+    % Calculates an n-Bit Addition with k Approximated FA and (n-k) FA
+    % k... Approximate Bits, n... Size
+    Ain = int2bit(Int1,n+1,false);
+    Bin = int2bit(Int2,n+1,false);
+    Cin = 0;
+    Sum = zeros(n+1,1);
+    if k>0
+        for i = (1:k)
+            [Cout, Sum(i)] =  fun(Ain(i),Bin(i),Cin);
+            Cin = Cout;
+        end
+    end
+    if k<8
+        for j = (k+1:n+1)
+            Sum(j) = xor(Ain(j),xor(Bin(j),Cin));
+            Cin = (Ain(j) & Bin(j)) | (Cin & (Ain(j) | Bin(j)));
+        end 
+    end
+    Out = bit2int(Sum,n+1,false);
+end
+
+function Output = GrayscaleConversion2(rgbImg,k,n,fun)
+% Converts an RGB Image to a Grayscale Image with an RCA that has k
+% Approximated FA and (n-k) Exakt FA
+    RedValues = rgbImg(:,:,1);
+    GreenValues = rgbImg(:,:,2);
+    BlueValues = rgbImg(:,:,3);
+    ImgSize = size(rgbImg);
+    RGValues = ImgAddition2(RedValues,GreenValues,k,n,ImgSize,fun);
+    Output = ImgAddition2(RGValues,BlueValues,k,n+1,ImgSize,fun)/3;
+end
+
 function [PSNR, MSSIM] = calculateMetrics(rgbImg,fun)
 % Calculates PSNR and MSSIM for different Approximation Degrees for one
 % Algorithm
-    Ref = uint8(GrayscaleConversion(rgbImg,0,8,fun));
-    A = uint8(GrayscaleConversion(rgbImg,1,8,fun));
-    B = uint8(GrayscaleConversion(rgbImg,2,8,fun));
-    C = uint8(GrayscaleConversion(rgbImg,3,8,fun));
-    D = uint8(GrayscaleConversion(rgbImg,4,8,fun));
-    E = uint8(GrayscaleConversion(rgbImg,5,8,fun));
+    Ref = uint8(GrayscaleConversion2(rgbImg,0,8,fun));
+    A = uint8(GrayscaleConversion2(rgbImg,1,8,fun));
+    B = uint8(GrayscaleConversion2(rgbImg,2,8,fun));
+    C = uint8(GrayscaleConversion2(rgbImg,3,8,fun));
+    D = uint8(GrayscaleConversion2(rgbImg,4,8,fun));
+    E = uint8(GrayscaleConversion2(rgbImg,5,8,fun));
     PSNR = [psnr(A,Ref);psnr(B,Ref);psnr(C,Ref);psnr(D,Ref);psnr(E,Ref)];
     MSSIM = [ssim(A,Ref);ssim(B,Ref);ssim(C,Ref);ssim(D,Ref);ssim(E,Ref)];
 end
@@ -25,27 +72,27 @@ function ShowOneAlgo(rgbImg,fun)
     subplot(3,3,1)
     imshow(rgbImg,[])
     title("(a)")
-    Ref = GrayscaleConversion(rgbImg,0,8,fun);
+    Ref = GrayscaleConversion2(rgbImg,0,8,fun);
     subplot(3,3,2)
     imshow(Ref,[])
     title("(b)")
-    A = GrayscaleConversion(rgbImg,1,8,fun);
+    A = GrayscaleConversion2(rgbImg,1,8,fun);
     subplot(3,3,3)
     imshow(A,[])
     title("(c)")
-    A = GrayscaleConversion(rgbImg,2,8,fun);
+    A = GrayscaleConversion2(rgbImg,2,8,fun);
     subplot(3,3,4)
     imshow(A,[])
     title("(d)")
-    A = GrayscaleConversion(rgbImg,3,8,fun);
+    A = GrayscaleConversion2(rgbImg,3,8,fun);
     subplot(3,3,5)
     imshow(A,[])
     title("(e)")
-    A = GrayscaleConversion(rgbImg,4,8,fun);
+    A = GrayscaleConversion2(rgbImg,4,8,fun);
     subplot(3,3,6)
     imshow(A,[])
     title("(f)")
-    A = GrayscaleConversion(rgbImg,5,8,fun);
+    A = GrayscaleConversion2(rgbImg,5,8,fun);
     subplot(3,3,7)
     imshow(A,[])
     title("(g)")
@@ -57,23 +104,23 @@ function ShowAllAlgos(rgbImg,k)
     subplot(2,3,1)
     imshow(rgbImg,[])
     title("(a)")
-    Ref = GrayscaleConversion(rgbImg,0,8,@SSIAFA1);
+    Ref = GrayscaleConversion2(rgbImg,0,8,@SSIAFA1);
     subplot(2,3,2)
     imshow(Ref,[])
     title("(b)")
-    A = GrayscaleConversion(rgbImg,k,8,@SSIAFA1);
+    A = GrayscaleConversion2(rgbImg,k,8,@SSIAFA1);
     subplot(2,3,3)
     imshow(A,[])
     title("(c)")
-    A = GrayscaleConversion(rgbImg,k,8,@SSIAFA2);
+    A = GrayscaleConversion2(rgbImg,k,8,@SSIAFA2);
     subplot(2,3,4)
     imshow(A,[])
     title("(d)")
-    A = GrayscaleConversion(rgbImg,k,8,@SSIAFA3);
+    A = GrayscaleConversion2(rgbImg,k,8,@SSIAFA3);
     subplot(2,3,5)
     imshow(A,[])
     title("(e)")
-    A = GrayscaleConversion(rgbImg,k,8,@SSIAFA4);
+    A = GrayscaleConversion2(rgbImg,k,8,@SSIAFA4);
     subplot(2,3,6)
     imshow(A,[])
     title("(f)")
