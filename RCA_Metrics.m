@@ -11,10 +11,10 @@ Energie_FA = 3.8435;
 Energie_Extra = 0.805;
 
 %Calculated NMEDs
-NMED1 = [0.00098,0.0044,0.0127,0.03,0.0702];
-NMED2 = [0.0039,0.0083,0.0155,0.0292,0.0556];
-NMED3 = [0.0039,0.0083,0.0155,0.0292,0.0556];
-NMED4 = [0.0039,0.0107,0.0237,0.0489,0.0973];
+NMED1 = [0.0005,0.0017,0.0042,0.0092,0.0194];
+NMED2 = [0.0010,0.0022,0.0044,0.0087,0.0174];
+NMED3 = [0.0010,0.0022,0.0044,0.0087,0.0174];
+NMED4 = [0.0010,0.0024,0.0051,0.0104,0.0209];
 
 FOM = zeros(5,1);
 for i = (1:5)
@@ -64,13 +64,13 @@ PSNR_AVG = (PSNR_Add + PSNR_Sub + PSNR_Gray)/3;
 MSSIM_AVG = (MSSIM_Add + MSSIM_Sub + MSSIM_Gray)/3;
 
 %% Quality Metrics for 8-Bit
-for i = (1:4)
-[MED(i) , NMED(i), MRED(i)] = MED_8Bit(5,8,@SSIAFA1);
+for i = (1:5)
+[MED(i) , NMED(i), MRED(i)] = MED_8Bit(i,8,@SSIAFA4);
 end
 
 
 %% Quality Metrics for 16/32-Bit
-[MED, NMED, MRED] = MED_nBit(1,8,@SSIAFA1);
+[MED, NMED, MRED] = MED_nBit(1,8,@SSIAFA);
 
 
 %% functions
@@ -92,7 +92,7 @@ function [MED, NMED, MRED] = MED_8Bit(k,n,fun)
         end
     end
     MED = ED_Sum/(2^(2*n));
-    NMED = MED/(2^n-1);
+    NMED = MED/(2^(n+1)-1);
     MRED = sum(RED,"all")/(2^(2*n));
 end
 
@@ -122,10 +122,10 @@ end
 function Out = ApprAddition(Int1, Int2, k, n, fun)
     % Calculates an n-Bit Addition with k Approximated FA and (n-k) FA
     % k... Approximate Bits, n... Size
-    Ain = int2bit(Int1,n,false);
-    Bin = int2bit(Int2,n,false);
+    Ain = int2bit(Int1,n+1,false);
+    Bin = int2bit(Int2,n+1,false);
     Cin = 0;
-    Sum = zeros(n,1);
+    Sum = zeros(n+1,1);
     if k>0
         for i = (1:k)
             [Cout, Sum(i)] =  fun(Ain(i),Bin(i),Cin);
@@ -133,12 +133,12 @@ function Out = ApprAddition(Int1, Int2, k, n, fun)
         end
     end
     if k<8
-        for j = (k+1:n)
+        for j = (k+1:n+1)
             Sum(j) = xor(Ain(j),xor(Bin(j),Cin));
             Cin = (Ain(j) & Bin(j)) | (Cin & (Ain(j) | Bin(j)));
         end 
     end
-    Out = uint8(bit2int(Sum,n,false));
+    Out = bit2int(Sum,n+1,false);
 end
 
 function [Cout, Sum] = SSIAFA1(Ain,Bin,Cin)
