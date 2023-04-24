@@ -65,24 +65,27 @@ MSSIM_AVG = (MSSIM_Add + MSSIM_Sub + MSSIM_Gray)/3;
 
 %% Quality Metrics for 8-Bit
 for i = (1:5)
-[MED(i) , NMED(i), MRED(i)] = MED_8Bit(i,8,@SSIAFA4);
+[MED(i) , NMED(i), MRED(i)] = MED_8Bit(i,@SSIAFA4);
 end
 
 
 %% Quality Metrics for 16/32-Bit
-[MED, NMED, MRED] = MED_nBit(1,8,@SSIAFA);
+for i = [8,16,24]
+    [MED(i), NMED(i), MRED(i)] = MED_nBit(i,32,@SSIAFA2);
+end
 
 
 %% functions
-function [MED, NMED, MRED] = MED_8Bit(k,n,fun)
+function [MED, NMED, MRED] = MED_8Bit(k,fun)
 % Calculates Error Metrics for an 8Bit RCA with k ApprFa and (n-k) Exakt FA
 % with the function fun for the Logic Outputs of the Approximated FA
 % Error Metrics are Calculated as in the Literature
+    RED = zeros(2^8,2^8);
     ED_Sum = 0;
-    for a = (0:1:2^n-1)
-        for b = (0:1:2^n-1)
-            Sum_exact = ApprAddition(a,b,0,n, fun);
-            Sum_appr = ApprAddition(a,b,k,n, fun);
+    for a = (0:1:2^8-1)
+        for b = (0:1:2^8-1)
+            Sum_exact = ApprAddition(a,b,0,8, fun);
+            Sum_appr = ApprAddition(a,b,k,8, fun);
             ED_Sum = ED_Sum + abs(double(Sum_exact)-double(Sum_appr));
             if(Sum_exact == 0)
                 RED(a+1,b+1) = 0;
@@ -91,32 +94,33 @@ function [MED, NMED, MRED] = MED_8Bit(k,n,fun)
             end
         end
     end
-    MED = ED_Sum/(2^(2*n));
-    NMED = MED/(2^(n+1)-1);
-    MRED = sum(RED,"all")/(2^(2*n));
+    MED = ED_Sum/(2^(2*8));
+    NMED = MED/(2^(8+1)-1);
+    MRED = sum(RED,"all")/(2^(2*8));
 end
 
 function [MED, NMED, MRED] = MED_nBit(k,n,fun)
 % Creates an random 1000x1000 Input Array and Calulates the Error Metrics
 % for n Bits. 
 % Uses the Logic Function of ApprFA as fun
-    InputValues1 = randi(2^n-1,[1000,1]);
-    InputValues2 = randi(2^n-1,[1000,1]);
-    ED_Sum = 0;
+    inputs = 1000;
+    InputValues1 = randi(2^n-1,[inputs,1]);
+    InputValues2 = randi(2^n-1,[inputs,1]);
+    ED_Sum = 0; 
     RED = 0;
     for a = InputValues1(:)'
         for b = InputValues2(:)'
-            Sum_exact = ApprAddition(a,b,k,n, fun);
-            Sum_appr = ApprAddition(a,b,k,n, fun);
+            Sum_exact = ApprAddition(a,b,0,n,fun);
+            Sum_appr = ApprAddition(a,b,k,n,fun);
             ED_Sum = ED_Sum + abs(double(Sum_exact)-double(Sum_appr));
             if(Sum_exact ~= 0)
                RED = RED + double(abs(double(Sum_exact)-double(Sum_appr))/double(Sum_exact));
             end   
         end
     end
-    MED = ED_Sum/(1000^2-1);
-    NMED = MED/(2^n-1);
-    MRED = RED/(1000^2-1);
+    MED = ED_Sum/(inputs^2)
+    NMED = MED/(2^(n+1)-1)
+    MRED = RED/(inputs^2)
 end
 
 function Out = ApprAddition(Int1, Int2, k, n, fun)
@@ -132,7 +136,7 @@ function Out = ApprAddition(Int1, Int2, k, n, fun)
             Cin = Cout;
         end
     end
-    if k<8
+    if k<n
         for j = (k+1:n+1)
             Sum(j) = xor(Ain(j),xor(Bin(j),Cin));
             Cin = (Ain(j) & Bin(j)) | (Cin & (Ain(j) | Bin(j)));
